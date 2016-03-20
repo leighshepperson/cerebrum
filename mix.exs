@@ -1,0 +1,35 @@
+defmodule Cerebrum.Mixfile do
+  use Mix.Project
+
+  def project do
+    [app: :cerebrum,
+     version: "0.0.1",
+     elixir: "~> 1.2",
+     build_embedded: Mix.env == :prod,
+     start_permanent: Mix.env == :prod,
+     deps: deps(Mix.env)]
+  end
+  def application do
+    [applications: [:logger]]
+  end
+
+  defp deps(:test) do
+    deps(:prod) ++
+    [
+      {:eye_drops, "~> 1.0.1"}
+    ]
+  end
+
+  defp deps(:prod) do
+    [
+      {:exalgebra, "~> 0.0.4"},
+      {:neo4j_sips, "~> 0.1"},
+      { :uuid, "~> 1.1" }
+    ]
+  end
+
+  defp deps(_) do
+    deps(:test) ++ []
+  end
+
+end
