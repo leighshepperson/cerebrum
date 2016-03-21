@@ -1,5 +1,3 @@
-# cerebrum
-Neural network library for Elixir and Neo4j
 # Cerebrum
 
 **TODO: Add description**
@@ -20,3 +18,8 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
           [applications: [:cerebrum]]
         end
 
+=======
+# cerebrum
+Neural network library for Elixir and Neo4j
+
+![Alt text](./neo4j.png?raw=true "Neo4j ANN")
