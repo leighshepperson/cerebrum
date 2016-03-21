@@ -122,7 +122,7 @@ defmodule Cerebrum.GenotypeCypherTest do
     "CREATE (neuron4)-[:OUTPUT{weights: [0.5]}]->(actuator)",
     "CREATE (neuron5)-[:OUTPUT{weights: [0.5]}]->(actuator)"]
 
-    save(cypher_list)
+    assert {:ok, _message} = save(cypher_list)
 
   end
 

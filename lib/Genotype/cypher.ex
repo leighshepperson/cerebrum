@@ -51,9 +51,9 @@ end
 def save(cypher_list) do
   cypher = cypher_list |> Enum.join(" ")
 
-  case  Neo4j.query(Neo4j.conn(), cypher) do
-    {:ok, body}      -> IO.puts "Success: #{body}"
-    {:error, reason} -> IO.puts "Error: #{reason}"
+  case Neo4j.query(Neo4j.conn(), cypher) do
+    {:ok, body}      -> {:ok, body}
+    {:error, reason} -> {:error, reason}
   end
 
 end
