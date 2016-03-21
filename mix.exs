@@ -10,7 +10,7 @@ defmodule Cerebrum.Mixfile do
      deps: deps(Mix.env)]
   end
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :neo4j_sips, :con_cache]]
   end
 
   defp deps(:test) do
@@ -24,7 +24,7 @@ defmodule Cerebrum.Mixfile do
     [
       {:exalgebra, "~> 0.0.4"},
       {:neo4j_sips, "~> 0.1"},
-      { :uuid, "~> 1.1" }
+      {:con_cache, "~> 0.11.0"}
     ]
   end
 

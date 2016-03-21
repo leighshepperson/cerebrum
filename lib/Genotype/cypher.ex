@@ -2,70 +2,77 @@ defmodule Cerebrum.GenotypeCypher do
 alias Cerebrum.Neuron
 alias Cerebrum.Sensor
 alias Cerebrum.Actuator
-alias Cerebrum.CounterAgent
-alias UUID
+alias Neo4j.Sips, as: Neo4j
 
-def create_neuron_cypher(%Neuron{name: name, activation_function: activation_function, bias: bias}) do
-  "CREATE (#{name}:Neuron {activation_function:'#{activation_function}', bias: #{bias}})"
+def create_neuron_cypher(%Neuron{name: name, activation_function: activation_function, bias: bias}, graph_name) do
+  "CREATE (#{name}:Neuron {activation_function:'#{activation_function}', bias: #{bias}, #{graph_name}: true})"
 end
 
-def connect_network(first_component_name, second_component_name, weights)  do
+def create_sensor_cypher(%Sensor{name: name, function_name: function_name, output_vector_length: output_vector_length}, graph_name) do
+  "CREATE (#{name}:Sensor {function_name: '#{function_name}', output_vector_length: #{output_vector_length}, #{graph_name}: true})"
+end
+
+def create_actuator_cypher(%Actuator{name: name, function_name: function_name, output_vector_length: output_vector_length}, graph_name) do
+  "CREATE (#{name}:Actuator {function_name: '#{function_name}', output_vector_length: #{output_vector_length}, #{graph_name}: true})"
+end
+
+def connect_node(first_component_name, second_component_name, weights)  do
   "CREATE (#{first_component_name})-[:OUTPUT{weights: [#{Enum.join(weights, ", ")}]}]->(#{second_component_name})"
 end
 
-def create_sensor_cypher(%Sensor{name: name, function_name: function_name, output_vector_length: output_vector_length}) do
- "CREATE (#{name}:Sensor {function_name: '#{function_name}', output_vector_length: #{output_vector_length}})"
-end
-
-def create_actuator_cypher(%Actuator{name: name, function_name: function_name, output_vector_length: output_vector_length}) do
- "CREATE (#{name}:Actuator {function_name: '#{function_name}', output_vector_length: #{output_vector_length}})"
-end
-
-def create_neurons1(layer_densities, activation_function, bias) do
-  total_number_of_neurons = layer_densities |> Enum.sum
-  (for i <- 1..total_number_of_neurons,
-    do: create_neuron_cypher(%Neuron{name: "neuron#{i}", activation_function: activation_function, bias: bias.(i)}))
-  |> Enum.join(" ")
-end
-
-def create_sensor_to_neuron_cypher(sensor, neurons, weight_function) do
+def create_connect_sensor_to_neurons_cypher(sensor, neurons, weight_function) do
   weights = 1..sensor.output_vector_length |> Enum.map(&weight_function.(&1))
-  neurons
-  |> Enum.map(&connect_network(sensor.name, &1.name, weights))
-  |> Enum.join(" ")
+  neurons |> Enum.map(&connect_node(sensor.name, &1.name, weights))
 end
 
-def create_neuron_to_actuator_cypher(actuator, neurons, weight_function) do
-  weights = [0.5]
-  neurons
-  |> Enum.map(&connect_network(&1.name, actuator.name, weights))
-  |> Enum.join(" ")
+def create_connect_actuator_to_neurons_cypher(actuator, neurons, weight_function) do
+  weights = [weight_function.(1)]
+  neurons |> Enum.map(&connect_node(&1.name, actuator.name, weights))
 end
 
-def create_neuron_to_neuron_cypher(neuron, neurons, weight_function) do
-  weights = [0.5]
-  neurons
-  |> Enum.map(&connect_network(neuron.name, &1.name, weights))
-  |> Enum.join(" ")
+def create_connect_neuron_to_neurons_cypher(neuron, neurons, weight_function) do
+  weights = [weight_function.(1)]
+  neurons |> Enum.map(&connect_node(neuron.name, &1.name, weights))
 end
 
-def create_neural_network_cypher(sensor, actuator, hidden_layer_densities) do
+def create_neural_network_cypher(sensor, actuator, hidden_layer_densities, bias_function, neuron_activation_function, weight_function, graph_name) do
   layer_densities = [actuator.output_vector_length | hidden_layer_densities |> Enum.reverse] |> Enum.reverse
-  create_neurons_by_layer(layer_densities)
+  neurons_by_layers = Neuron.create_neurons_by_layers(layer_densities, bias_function, neuron_activation_function)
+
+  sensor_cypher = create_sensor_cypher(sensor, graph_name)
+  actuator_cypher = create_actuator_cypher(actuator, graph_name)
+  neuron_cyphers = neurons_by_layers |> List.flatten |> Enum.map(&create_neuron_cypher(&1, graph_name))
+
+  connection_cyphers = create_connections(sensor, neurons_by_layers, actuator, weight_function)
+
+  [[sensor_cypher, actuator_cypher | neuron_cyphers] | connection_cyphers] |> List.flatten
+end
+
+def save(cypher_list) do
+  cypher = cypher_list |> Enum.join(" ")
+
+  case  Neo4j.query(Neo4j.conn(), cypher) do
+    {:ok, body}      -> IO.puts "Success: #{body}"
+    {:error, reason} -> IO.puts "Error: #{reason}"
+  end
 
 end
 
-defp create_neurons_by_layer(layer_densities) do
-  count = 0
-  {_, count_pid} = Agent.start_link(fn -> 0 end)
-  neurons = layer_densities |> Enum.map(&(for _ <- 1..&1, do: create_neuron(0.5, "sigmoid", count_pid)))
-  Agent.stop(count_pid)
-  neurons
+defp create_connections(nil, [first_neuron_layer | []], actuator, weight_function) do
+  [create_connect_actuator_to_neurons_cypher(actuator, first_neuron_layer, weight_function)]
 end
 
-defp create_neuron(bias, activation_function, count_pid) do
-  current_index = Agent.get_and_update(count_pid, fn i -> {i + 1, i+ 1} end)
-  %Neuron{name: "neuron#{current_index}", bias: bias, activation_function: activation_function}
+defp create_connections(nil, [first_neuron_layer | [second_neuron_layer | _] = remaining_neuron_layers] = neurons_by_layers, actuator, weight_function) do
+  connect_neurons_to_neurons_cypher = first_neuron_layer
+  |> Enum.map(&create_connect_neuron_to_neurons_cypher(&1, second_neuron_layer, weight_function))
+
+  [connect_neurons_to_neurons_cypher | create_connections(nil, remaining_neuron_layers, actuator, weight_function)]
+end
+
+defp create_connections(sensor, [first_neuron_layer | _] = neurons_by_layers, actuator, weight_function) do
+  connect_sensor_to_neurons_cypher = create_connect_sensor_to_neurons_cypher(sensor, first_neuron_layer, weight_function)
+
+  [connect_sensor_to_neurons_cypher | create_connections(nil, neurons_by_layers, actuator, weight_function)]
 end
 
 end
