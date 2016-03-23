@@ -45,11 +45,11 @@ def create_neural_network(sensor, actuator, hidden_layer_densities, bias_functio
     |> layer_densities(hidden_layer_densities)
     |> Neuron.buckets(bias_function, neuron_activation_function)
 
-  node_cyphers = [sensor, actuator, neuron_layers] |> List.flatten |> Enum.map(&create_node(&1, graph_name))
+  nodes = [sensor, actuator, neuron_layers] |> List.flatten |> Enum.map(&create_node(&1, graph_name))
 
-  connection_cyphers = relate_network(sensor, neuron_layers, actuator, weight_function)
+  relations = relate_network(sensor, neuron_layers, actuator, weight_function)
 
-  [node_cyphers | connection_cyphers] |> List.flatten
+  [nodes | relations] |> List.flatten
 end
 
 defp layer_densities(actuator, hidden_layer_densities) do
