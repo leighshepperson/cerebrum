@@ -40,7 +40,7 @@ def relate_neurons_to_neurons(neurons_left, neurons_right, weight_function) do
  |> List.flatten
 end
 
-def create_neural_network_cypher(sensor, actuator, hidden_layer_densities, bias_function, neuron_activation_function, weight_function, graph_name) do
+def create_neural_network(sensor, actuator, hidden_layer_densities, bias_function, neuron_activation_function, weight_function, graph_name) do
   neuron_layers = actuator
     |> layer_densities(hidden_layer_densities)
     |> Neuron.buckets(bias_function, neuron_activation_function)

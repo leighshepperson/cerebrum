@@ -113,7 +113,7 @@ defmodule Cerebrum.Genotype.CypherTest do
       "CREATE (neuron3)-[:OUTPUT{weights: [0.5]}]->(actuator)",
       "CREATE (neuron4)-[:OUTPUT{weights: [0.5]}]->(actuator)"
     ]
-     assert expected == create_neural_network_cypher(sensor, actuator, hidden_layer_densities, bias_function, activation_function, weight_function, @graph_name)
+     assert expected == create_neural_network(sensor, actuator, hidden_layer_densities, bias_function, activation_function, weight_function, @graph_name)
 
   end
 
