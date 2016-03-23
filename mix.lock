@@ -1,5 +1,7 @@
-%{"certifi": {:hex, :certifi, "0.4.0"},
+%{"bunt": {:hex, :bunt, "0.1.5"},
+  "certifi": {:hex, :certifi, "0.4.0"},
   "con_cache": {:hex, :con_cache, "0.11.0"},
+  "credo": {:hex, :credo, "0.3.8"},
   "exactor": {:hex, :exactor, "2.2.0"},
   "exalgebra": {:hex, :exalgebra, "0.0.4"},
   "eye_drops": {:hex, :eye_drops, "1.0.1"},

@@ -1,21 +1,19 @@
 defmodule Cerebrum.Neuron do
+  alias Cerebrum.Neuron.NeuronAgent
   defstruct name: "", activation_function: "", bias: 0
 
-  def create_neurons_by_layers(layer_densities, bias_function, neuron_activation_function) do
-    {_, count_pid} = Agent.start_link(fn -> 0 end)
-    neurons_by_layers = layer_densities |> Enum.map(&create_neurons(&1, count_pid, bias_function, neuron_activation_function))
-    Agent.stop(count_pid)
-
-    neurons_by_layers
+  def buckets(bucket_densities, bias_function, activation_function) do
+    {_, neuron_agent} = NeuronAgent.start_link()
+    bucket_densities |> Enum.map(&do_create(neuron_agent, &1, bias_function, activation_function))
   end
 
-  def create_neurons(number_of_neurons, count_pid, bias_function, activation_function) do
-    for _ <- 1..number_of_neurons, do: create_neuron(count_pid, bias_function, activation_function)
+  def create(number_of_neurons,  bias_function, activation_function) do
+    {_, neuron_agent} = NeuronAgent.start_link()
+    do_create(neuron_agent, number_of_neurons, bias_function, activation_function)
   end
 
-  def create_neuron(count_pid, bias_function, activation_function) do
-    index = Agent.get_and_update(count_pid, &{&1 + 1, &1 + 1})
-    %Cerebrum.Neuron{name: "neuron#{index}", bias: bias_function.(index), activation_function: activation_function}
+  defp do_create(neuron_agent, number_of_neurons, bias_function, activation_function) do
+    for _ <- 1..number_of_neurons, do: NeuronAgent.create_neuron(neuron_agent, bias_function, activation_function)
   end
 
 end

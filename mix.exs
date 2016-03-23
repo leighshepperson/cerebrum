@@ -16,7 +16,8 @@ defmodule Cerebrum.Mixfile do
   defp deps(:test) do
     deps(:prod) ++
     [
-      {:eye_drops, "~> 1.0.1"}
+      {:eye_drops, "~> 1.0.1"},
+      {:credo, "~> 0.3.8"}
     ]
   end
 
