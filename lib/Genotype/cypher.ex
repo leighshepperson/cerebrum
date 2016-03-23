@@ -2,7 +2,6 @@ defmodule Cerebrum.Genotype.Cypher do
 alias Cerebrum.Neuron
 alias Cerebrum.Sensor
 alias Cerebrum.Actuator
-alias Neo4j.Sips, as: Neo4j
 
 def create_node(%Neuron{name: name, activation_function: activation_function, bias: bias}, graph_name) do
   "CREATE (#{name}:Neuron {activation_function:'#{activation_function}', bias: #{bias}, #{graph_name}: true})"
