@@ -25,21 +25,21 @@ defmodule Cerebrum.Genotype.CypherTest do
   end
 
   test "Returns a cypher to create a sensor" do
-    sensor = %Sensor{name: "sensor_name", function_name: "sigmoid", output_vector_length: 3}
+    sensor = %Sensor{name: "sensor_name", sense_function: "sigmoid", output_vector_length: 3}
 
     assert create_node(sensor, @graph_name) ==
-    "CREATE (sensor_name:Sensor {function_name: 'sigmoid', output_vector_length: 3, cerebrum: true})"
+    "CREATE (sensor_name:Sensor {sense_function: 'sigmoid', output_vector_length: 3, cerebrum: true})"
   end
 
   test "Returns cypher to create a simple actuator" do
-    actuator = %Actuator{name: "actuator_name", function_name: "sigmoid", accumulated_actuation_vector_length: 2}
+    actuator = %Actuator{name: "actuator_name", accumulator_function: "sigmoid", accumulated_actuation_vector_length: 2}
 
     assert create_node(actuator, @graph_name) ==
-    "CREATE (actuator_name:Actuator {function_name: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})"
+    "CREATE (actuator_name:Actuator {accumulator_function: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})"
   end
 
   test "Returns a cypher that connects a sensor to collection of neurons" do
-    sensor = %Sensor{name: "sensor", function_name: "sigmoid", output_vector_length: 3}
+    sensor = %Sensor{name: "sensor", output_vector_length: 3}
     neurons = [%Neuron{name: "neuron1"}, %Neuron{name: "neuron2"}, %Neuron{name: "neuron3"}]
     weight_function = fn _ -> 0.5 end
 
@@ -51,7 +51,7 @@ defmodule Cerebrum.Genotype.CypherTest do
   end
 
   test "Returns a cypher that connects an actuator to a collection of neurons" do
-    actuator = %Sensor{name: "actuator", function_name: "sigmoid", output_vector_length: 3}
+    actuator = %Actuator{name: "actuator", accumulator_function: "sigmoid", accumulated_actuation_vector_length: 3}
     neurons = [%Neuron{name: "neuron1"}, %Neuron{name: "neuron2"}]
     weight_function = fn _ -> 0.5 end
 
@@ -86,8 +86,8 @@ defmodule Cerebrum.Genotype.CypherTest do
   end
 
   test "Returns a cypher to create a neural network with one sensor, one actuator and neruons defined by hidden layer densities" do
-    sensor = %Sensor{name: "sensor", function_name: "sigmoid", output_vector_length: 3}
-    actuator = %Actuator{name: "actuator", function_name: "sigmoid", accumulated_actuation_vector_length: 2}
+    sensor = %Sensor{name: "sensor", sense_function: "sigmoid", output_vector_length: 3}
+    actuator = %Actuator{name: "actuator", accumulator_function: "sigmoid", accumulated_actuation_vector_length: 2}
 
     hidden_layer_densities = [1, 2]
     bias_function = fn _ -> 0.5 end
@@ -96,8 +96,8 @@ defmodule Cerebrum.Genotype.CypherTest do
 
     expected =
     [
-      "CREATE (sensor:Sensor {function_name: 'sigmoid', output_vector_length: 3, cerebrum: true})",
-      "CREATE (actuator:Actuator {function_name: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})",
+      "CREATE (sensor:Sensor {sense_function: 'sigmoid', output_vector_length: 3, cerebrum: true})",
+      "CREATE (actuator:Actuator {accumulator_function: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})",
       "CREATE (neuron0:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
       "CREATE (neuron1:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
       "CREATE (neuron2:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
