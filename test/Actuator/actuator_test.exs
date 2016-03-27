@@ -10,7 +10,8 @@ defmodule Cerebrum.ActuatorTest do
     actuator = %Cerebrum.Actuator{accumulator_function: "return", inputs: [pid0]}
 
     cortex = self
-    {_, pid} = start_link(actuator, cortex)
+    {_, pid} = start_link(cortex)
+    send pid, {:init, actuator}
 
     send pid, {:terminate}
 
@@ -26,7 +27,8 @@ defmodule Cerebrum.ActuatorTest do
     actuator = %Cerebrum.Actuator{accumulator_function: "return", inputs: [pid0, pid1, pid2]}
 
     cortex = self
-    {_, pid} = start_link(actuator, cortex)
+    {_, pid} = start_link(cortex)
+    send pid, {:init, actuator}
 
     send pid, {:forward, pid0, 0}
     refute_receive {:sync, ^pid}
@@ -47,7 +49,8 @@ defmodule Cerebrum.ActuatorTest do
     actuator = %Cerebrum.Actuator{accumulator_function: "return", inputs: [pid0, pid1, pid2]}
 
     cortex = self
-    {_, pid} = start_link(actuator, cortex)
+    {_, pid} = start_link(cortex)
+    send pid, {:init, actuator}
 
     send pid, {:forward, pid0, 0}
     send pid, {:forward, pid1, 1}

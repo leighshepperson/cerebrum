@@ -20,7 +20,8 @@ defmodule Cerebrum.SensorTest do
     }
 
     cortex = self()
-    {_, sensor_pid} = start_link(sensor, cortex)
+    {_, sensor_pid} = start_link(cortex)
+    send sensor_pid, {:init, sensor}
 
     send sensor_pid, {:sync}
 
@@ -33,11 +34,12 @@ defmodule Cerebrum.SensorTest do
     sensor = %{sense_function: "all_ones", output_vector_length: 2, name: "new", outputs: [self()]}
 
     cortex = self()
-    {_, sensor_pid} = start_link(sensor, cortex)
+    {_, sensor_pid} = start_link(cortex)
+    send sensor_pid, {:init, sensor}
 
     send sensor_pid, {:terminate}
 
-    assert_receive {sensor_pid, :ok}
+    assert_receive {:ok, sensor_pid}
   end
 
   defp test_loop do

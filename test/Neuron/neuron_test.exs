@@ -63,7 +63,8 @@ defmodule Cerebrum.Neuron.NeuronTest do
     neuron = %{neuron | inputs: inputs, outputs: outputs}
 
     cortex = self()
-    {_, neuron_pid} = start_link(neuron, cortex)
+    {_, neuron_pid} = start_link(cortex)
+    send neuron_pid, {:init, neuron}
 
     send neuron_pid, {:forward, pid0, [0.7]}
     send neuron_pid, {:forward, pid1, [0.2]}
@@ -87,11 +88,12 @@ defmodule Cerebrum.Neuron.NeuronTest do
     neuron = %{neuron | inputs: inputs, outputs: outputs}
 
     cortex = self()
-    {_, neuron_pid} = start_link(neuron, cortex)
+    {_, neuron_pid} = start_link(cortex)
+    send neuron_pid, {:init, neuron}
 
     send neuron_pid, {:terminate}
 
-    assert_receive :ok
+    assert_receive {:ok, neuron_pid}
   end
 
   test "When I receive a backup message, then I return the neuron to the cortex" do
@@ -103,8 +105,8 @@ defmodule Cerebrum.Neuron.NeuronTest do
     outputs = [self()]
     neuron = %{neuron | inputs: inputs, outputs: outputs}
 
-    cortex = self()
-    {_, neuron_pid} = start_link(neuron, cortex)
+    {_, neuron_pid} = start_link(self)
+    send neuron_pid, {:init, neuron}
 
     send neuron_pid, {:backup}
 

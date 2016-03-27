@@ -18,24 +18,31 @@ defmodule Cerebrum.Neuron do
     for _ <- 1..number_of_neurons, do: NeuronAgent.create_neuron(neuron_agent, bias_function, activation_function)
   end
 
-  def start_link(neuron, cortex) do
-    Task.start_link(fn -> loop(neuron, cortex, neuron.inputs, 0) end)
+  def start_link(cortex_pid) do
+    Task.start_link(fn -> init(cortex_pid) end)
   end
 
-  defp loop(neuron, cortex, inputs, acc) when inputs == %{} do
+  defp init(cortex_pid) do
+    receive do
+      {:init, neuron} -> loop(neuron, cortex_pid, neuron.inputs, 0)
+      {:terminate} -> send cortex_pid, {:ok, self}
+    end
+  end
+
+  defp loop(neuron, cortex_pid, inputs, acc) when inputs == %{} do
     output = apply_activation_function(neuron, acc + neuron.bias)
     for pid <- neuron.outputs, do: send pid, {:forward, self(), [output]}
-    loop(neuron, cortex, neuron.inputs, 0)
+    loop(neuron, cortex_pid, neuron.inputs, 0)
   end
 
-  defp loop(neuron, cortex, inputs, acc) do
+  defp loop(neuron, cortex_pid, inputs, acc) do
     receive do
       {:forward, input, output} ->
         {weights, reduced_inputs} = Map.pop(inputs, input)
         acc = acc + Vector.dot(output, weights)
-        loop(neuron, cortex, reduced_inputs, acc)
-      {:backup} -> send cortex, {:backup, self(), neuron}
-      {:terminate} -> send cortex, :ok
+        loop(neuron, cortex_pid, reduced_inputs, acc)
+      {:backup} -> send cortex_pid, {:backup, self(), neuron}
+      {:terminate} -> send cortex_pid, {:ok, self}
     end
   end
 
