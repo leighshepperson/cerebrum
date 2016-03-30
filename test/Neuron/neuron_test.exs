@@ -3,7 +3,7 @@ defmodule Cerebrum.Neuron.NeuronTest do
   import Cerebrum.Neuron
   doctest Cerebrum.Neuron
 
-   test "Creates n-many neurons" do
+  test "Creates n-many neurons" do
     bias_function = fn _ -> 0.5 end
     activation_function = "sigmoid"
     number_of_neurons = 3

@@ -1,5 +1,5 @@
 defmodule Cerebrum.Actuator do
-  defstruct name: "", accumulator_function: "", accumulated_actuation_vector_length: 0, inputs: []
+  defstruct name: "", id: "", accumulator_function: "", accumulated_actuation_vector_length: 0, inputs: []
 
   def start_link(cortex_pid) do
     Task.start_link(fn -> init(cortex_pid) end)

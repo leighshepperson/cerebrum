@@ -26,7 +26,8 @@ defmodule Cerebrum.Mixfile do
     [
       {:exalgebra, "~> 0.0.4"},
       {:neo4j_sips, "~> 0.1"},
-      {:con_cache, "~> 0.11.0"}
+      {:con_cache, "~> 0.11.0"},
+      { :uuid, "~> 1.1" }
     ]
   end
 

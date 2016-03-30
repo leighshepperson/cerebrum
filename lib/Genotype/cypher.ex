@@ -1,18 +1,18 @@
 defmodule Cerebrum.Genotype.Cypher do
-alias Cerebrum.Neuron
-alias Cerebrum.Sensor
-alias Cerebrum.Actuator
+  alias Cerebrum.Neuron
+  alias Cerebrum.Sensor
+  alias Cerebrum.Actuator
 
-  def create_node(%Neuron{name: name, activation_function: activation_function, bias: bias}, graph_name) do
-    "CREATE (#{name}:Neuron {activation_function:'#{activation_function}', bias: #{bias}, #{graph_name}: true})"
+  def create_node(%Neuron{name: name, activation_function: activation_function, bias: bias}, id_function, graph_name) do
+    "CREATE (#{name}:Neuron {type: 'neuron', id: #{id_function.()}, activation_function: '#{activation_function}', bias: #{bias}, #{graph_name}: true})"
   end
 
-  def create_node(%Sensor{name: name, sense_function: sense_function, output_vector_length: output_vector_length}, graph_name) do
-    "CREATE (#{name}:Sensor {sense_function: '#{sense_function}', output_vector_length: #{output_vector_length}, #{graph_name}: true})"
+  def create_node(%Sensor{name: name, sense_function: sense_function, output_vector_length: output_vector_length}, id_function, graph_name) do
+    "CREATE (#{name}:Sensor {type: 'sensor', id: #{id_function.()}, sense_function: '#{sense_function}', output_vector_length: #{output_vector_length}, #{graph_name}: true})"
   end
 
-  def create_node(%Actuator{name: name, accumulator_function: accumulator_function, accumulated_actuation_vector_length: accumulated_actuation_vector_length}, graph_name) do
-    "CREATE (#{name}:Actuator {accumulator_function: '#{accumulator_function}', accumulated_actuation_vector_length: #{accumulated_actuation_vector_length}, #{graph_name}: true})"
+  def create_node(%Actuator{name: name, accumulator_function: accumulator_function, accumulated_actuation_vector_length: accumulated_actuation_vector_length}, id_function, graph_name) do
+    "CREATE (#{name}:Actuator {type: 'actuator', id: #{id_function.()}, accumulator_function: '#{accumulator_function}', accumulated_actuation_vector_length: #{accumulated_actuation_vector_length}, #{graph_name}: true})"
   end
 
   def create_relationship(first_node, second_node, weights)  do
@@ -40,12 +40,12 @@ alias Cerebrum.Actuator
     |> List.flatten
   end
 
-  def create_neural_network(sensor, actuator, hidden_layer_densities, bias_function, neuron_activation_function, weight_function, graph_name) do
+  def create_neural_network(sensor, actuator, hidden_layer_densities, bias_function, neuron_activation_function, weight_function, id_function, graph_name) do
     neuron_layers = actuator
       |> layer_densities(hidden_layer_densities)
       |> Neuron.create_layers(bias_function, neuron_activation_function)
 
-    nodes = [sensor, actuator, neuron_layers] |> List.flatten |> Enum.map(&create_node(&1, graph_name))
+    nodes = [sensor, actuator, neuron_layers] |> List.flatten |> Enum.map(&create_node(&1, id_function, graph_name))
 
     relations = relate_network(sensor, neuron_layers, actuator, weight_function)
 

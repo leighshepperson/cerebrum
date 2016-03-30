@@ -1,5 +1,5 @@
 defmodule Cerebrum.Sensor do
-  defstruct name: "", sense_function: "", output_vector_length: 0, outputs: []
+  defstruct name: "", id: nil, sense_function: "", output_vector_length: 0, outputs: []
 
   def start_link(cortex_pid) do
     Task.start_link(fn -> init(cortex_pid) end)
@@ -15,7 +15,7 @@ defmodule Cerebrum.Sensor do
   defp loop(sensor, cortex_pid) do
      receive do
       {:sync} ->
-        for process <- sensor.outputs, do: send process, {:forward, self(), sense_function(sensor)}
+        for process <- sensor.outputs, do: send process, {:forward, self, sense_function(sensor)}
         loop(sensor, cortex_pid)
       {:terminate} -> send cortex_pid, {:ok, self}
     end

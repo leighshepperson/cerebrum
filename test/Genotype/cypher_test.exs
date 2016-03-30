@@ -11,8 +11,10 @@ defmodule Cerebrum.Genotype.CypherTest do
   test "Returns a cypher to create a neuron" do
     neuron = %Neuron{name: "neuron_id", activation_function: "sigmoid", bias: 0.1}
 
-    assert create_node(neuron, @graph_name) ==
-    "CREATE (neuron_id:Neuron {activation_function:'sigmoid', bias: 0.1, cerebrum: true})"
+    id_function = fn -> 1 end
+
+    assert create_node(neuron, id_function, @graph_name) ==
+    "CREATE (neuron_id:Neuron {type: 'neuron', id: 1, activation_function: 'sigmoid', bias: 0.1, cerebrum: true})"
   end
 
   test "Returns a cypher to connect a network pair with weights [0.1, 0.4, 0.5]" do
@@ -27,15 +29,19 @@ defmodule Cerebrum.Genotype.CypherTest do
   test "Returns a cypher to create a sensor" do
     sensor = %Sensor{name: "sensor_name", sense_function: "sigmoid", output_vector_length: 3}
 
-    assert create_node(sensor, @graph_name) ==
-    "CREATE (sensor_name:Sensor {sense_function: 'sigmoid', output_vector_length: 3, cerebrum: true})"
+    id_function = fn -> 1 end
+
+    assert create_node(sensor, id_function, @graph_name) ==
+    "CREATE (sensor_name:Sensor {type: 'sensor', id: 1, sense_function: 'sigmoid', output_vector_length: 3, cerebrum: true})"
   end
 
   test "Returns cypher to create a simple actuator" do
     actuator = %Actuator{name: "actuator_name", accumulator_function: "sigmoid", accumulated_actuation_vector_length: 2}
 
-    assert create_node(actuator, @graph_name) ==
-    "CREATE (actuator_name:Actuator {accumulator_function: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})"
+    id_function = fn -> 1 end
+
+    assert create_node(actuator, id_function, @graph_name) ==
+    "CREATE (actuator_name:Actuator {type: 'actuator', id: 1, accumulator_function: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})"
   end
 
   test "Returns a cypher that connects a sensor to collection of neurons" do
@@ -93,16 +99,17 @@ defmodule Cerebrum.Genotype.CypherTest do
     bias_function = fn _ -> 0.5 end
     activation_function = 'sigmoid'
     weight_function = fn _ -> 0.5 end
+    id_function = fn -> 1 end
 
     expected =
     [
-      "CREATE (sensor:Sensor {sense_function: 'sigmoid', output_vector_length: 3, cerebrum: true})",
-      "CREATE (actuator:Actuator {accumulator_function: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})",
-      "CREATE (neuron0:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
-      "CREATE (neuron1:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
-      "CREATE (neuron2:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
-      "CREATE (neuron3:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
-      "CREATE (neuron4:Neuron {activation_function:'sigmoid', bias: 0.5, cerebrum: true})",
+      "CREATE (sensor:Sensor {type: 'sensor', id: 1, sense_function: 'sigmoid', output_vector_length: 3, cerebrum: true})",
+      "CREATE (actuator:Actuator {type: 'actuator', id: 1, accumulator_function: 'sigmoid', accumulated_actuation_vector_length: 2, cerebrum: true})",
+      "CREATE (neuron0:Neuron {type: 'neuron', id: 1, activation_function: 'sigmoid', bias: 0.5, cerebrum: true})",
+      "CREATE (neuron1:Neuron {type: 'neuron', id: 1, activation_function: 'sigmoid', bias: 0.5, cerebrum: true})",
+      "CREATE (neuron2:Neuron {type: 'neuron', id: 1, activation_function: 'sigmoid', bias: 0.5, cerebrum: true})",
+      "CREATE (neuron3:Neuron {type: 'neuron', id: 1, activation_function: 'sigmoid', bias: 0.5, cerebrum: true})",
+      "CREATE (neuron4:Neuron {type: 'neuron', id: 1, activation_function: 'sigmoid', bias: 0.5, cerebrum: true})",
       "CREATE (sensor)-[:OUTPUT{weights: [0.5, 0.5, 0.5]}]->(neuron0)",
       "CREATE (neuron0)-[:OUTPUT{weights: [0.5]}]->(neuron1)",
       "CREATE (neuron0)-[:OUTPUT{weights: [0.5]}]->(neuron2)",
@@ -113,7 +120,7 @@ defmodule Cerebrum.Genotype.CypherTest do
       "CREATE (neuron3)-[:OUTPUT{weights: [0.5]}]->(actuator)",
       "CREATE (neuron4)-[:OUTPUT{weights: [0.5]}]->(actuator)"
     ]
-     assert expected == create_neural_network(sensor, actuator, hidden_layer_densities, bias_function, activation_function, weight_function, @graph_name)
+     assert expected == create_neural_network(sensor, actuator, hidden_layer_densities, bias_function, activation_function, weight_function, id_function, @graph_name)
 
   end
 

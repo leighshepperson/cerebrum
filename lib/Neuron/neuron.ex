@@ -2,7 +2,7 @@ defmodule Cerebrum.Neuron do
   alias Cerebrum.Neuron.NeuronAgent
   alias ExAlgebra.Vector
 
-  defstruct name: "", activation_function: "", bias: 0, inputs: %{}, outputs: []
+  defstruct name: "",  id: "", activation_function: "", bias: 0, inputs: %{}, outputs: []
 
   def create_layers(layer_densities, bias_function, activation_function) do
     {_, neuron_agent} = NeuronAgent.start_link()
